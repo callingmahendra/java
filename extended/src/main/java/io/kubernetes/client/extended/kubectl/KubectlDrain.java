@@ -70,15 +70,19 @@ public class KubectlDrain extends KubectlCordon {
     validatePods(allPods.getItems());
 
     for (V1Pod pod : allPods.getItems()) {
+      boolean isDaemonSetPod =false;
       // at this point we know, that we have to ignore daemon set pods
       if (pod.getMetadata().getOwnerReferences() != null) {
         for (V1OwnerReference ref : pod.getMetadata().getOwnerReferences()) {
           if (ref.getKind().equals("DaemonSet")) {
-            continue;
+            isDaemonSetPod = true;
+            break;
           }
         }
       }
-      deletePod(api, pod.getMetadata().getName(), pod.getMetadata().getNamespace());
+      if (!isDaemonSetPod) {
+        deletePod(api, pod.getMetadata().getName(), pod.getMetadata().getNamespace());
+      }
     }
     return node;
   }
